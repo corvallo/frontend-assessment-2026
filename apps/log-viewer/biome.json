@@ -6,14 +6,17 @@
 		"useIgnoreFile": true
 	},
 	"css": {
+		
 		"parser": {
 			"tailwindDirectives": true
 		},
 		"linter": { "enabled": true }
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": false,
+		"includes": ["**", "!./src/app/styles/global.css"]
 	},
+
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab"
