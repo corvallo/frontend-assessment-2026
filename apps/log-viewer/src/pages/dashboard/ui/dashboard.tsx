@@ -1,5 +1,5 @@
-import { EventList } from "@/widgets/event-list/ui/event-list";
+import { EventsList } from "@/widgets/events-list/ui/events-list";
 
 export const Dashboard = () => {
-	return <EventList />;
+	return <EventsList />;
 };

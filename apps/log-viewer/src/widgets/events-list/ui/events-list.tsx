@@ -3,7 +3,7 @@ import { ColumnsHeader } from "./columns-header";
 import { filtersSection, rowsWrapper, wrapper } from "./event-list.style";
 import { Rows } from "./rows";
 
-export function EventList() {
+export function EventsList() {
 	return (
 		<div className={wrapper}>
 			<div className={filtersSection}>
