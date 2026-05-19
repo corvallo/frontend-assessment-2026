@@ -1,11 +1,14 @@
 import type { PropsWithChildren } from "react";
-import { footerStyle, headerStyle, mainStyle } from "./layout.style";
+import { useEventStream } from "@/entities/event";
+import { Header } from "@/widgets/header";
+import { footerStyle, mainStyle } from "./layout.style";
 
 type LayoutProps = PropsWithChildren;
 export function Layout({ children }: LayoutProps) {
+	useEventStream();
 	return (
 		<>
-			<header className={headerStyle}>Header</header>
+			<Header />
 			<main className={mainStyle}>{children}</main>
 			<footer className={footerStyle}></footer>
 		</>

@@ -67,8 +67,6 @@ export type StreamEvent = {
 
 export type SSEHandlers = {
 	onOpen?: () => void;
-
 	onMessage?: (event: StreamEvent) => void;
-
 	onError?: (error: unknown) => void;
 };

@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
+
 import { selectEventList } from "../selectors";
-import { useEventStore } from "../store";
+import { useConnectionStore, useEventStore } from "../store";
 import { makeEvent } from "./mock";
 
 beforeEach(() => {
-	useEventStore.setState({ events: new Map(), connectionState: "connecting" });
+	useEventStore.setState({ events: new Map() });
+	useConnectionStore.setState({ connectionState: "connecting", reconnectCount: 0 });
 });
 
 describe("appendEvents", () => {
@@ -27,8 +29,12 @@ describe("appendEvents", () => {
 	});
 
 	it("incoming overwrites existing same id", () => {
-		useEventStore.getState().appendEvents([makeEvent({ id: "evt_1", raw: "old" })]);
-		useEventStore.getState().appendEvents([makeEvent({ id: "evt_1", raw: "new" })]);
+		useEventStore
+			.getState()
+			.appendEvents([makeEvent({ id: "evt_1", raw: "old" })]);
+		useEventStore
+			.getState()
+			.appendEvents([makeEvent({ id: "evt_1", raw: "new" })]);
 
 		expect(useEventStore.getState().events.get("evt_1")?.raw).toBe("new");
 	});
@@ -51,23 +57,66 @@ describe("appendEvents", () => {
 		useEventStore.getState().appendEvents(batch);
 
 		expect(useEventStore.getState().events.has("evt_0")).toBe(false);
-		expect(useEventStore.getState().events.has(`evt_${STORE_MAX_EVENTS + 4}`)).toBe(true);
+		expect(
+			useEventStore.getState().events.has(`evt_${STORE_MAX_EVENTS + 4}`),
+		).toBe(true);
 	});
 });
 
 describe("setConnectionState", () => {
 	it("updates connectionState", () => {
-		useEventStore.getState().setConnectionState("connected");
-		expect(useEventStore.getState().connectionState).toBe("connected");
+		useConnectionStore.getState().setConnectionState("connected");
+		expect(useConnectionStore.getState().connectionState).toBe("connected");
+	});
+
+	it.each(["connecting", "connected", "reconnecting", "catching-up", "disconnected"] as const)(
+		"accepts state %s",
+		(state) => {
+			useConnectionStore.getState().setConnectionState(state);
+			expect(useConnectionStore.getState().connectionState).toBe(state);
+		},
+	);
+});
+
+describe("incrementReconnectCount", () => {
+	it("starts at 0", () => {
+		expect(useConnectionStore.getState().reconnectCount).toBe(0);
+	});
+
+	it("increments by 1 each call", () => {
+		useConnectionStore.getState().incrementReconnectCount();
+		expect(useConnectionStore.getState().reconnectCount).toBe(1);
+	});
+
+	it("accumulates across multiple calls", () => {
+		useConnectionStore.getState().incrementReconnectCount();
+		useConnectionStore.getState().incrementReconnectCount();
+		useConnectionStore.getState().incrementReconnectCount();
+		expect(useConnectionStore.getState().reconnectCount).toBe(3);
+	});
+
+	it("is independent from connectionState changes", () => {
+		useConnectionStore.getState().incrementReconnectCount();
+		useConnectionStore.getState().setConnectionState("connected");
+		expect(useConnectionStore.getState().reconnectCount).toBe(1);
 	});
 });
 
 describe("selectEventList", () => {
 	it("returns events sorted by eventTime ascending", () => {
 		const events = [
-			makeEvent({ id: "evt_c", parsed: { eventTime: "2026-05-18T10:00:00.000Z" } as never }),
-			makeEvent({ id: "evt_a", parsed: { eventTime: "2026-05-18T08:00:00.000Z" } as never }),
-			makeEvent({ id: "evt_b", parsed: { eventTime: "2026-05-18T09:00:00.000Z" } as never }),
+			makeEvent({
+				id: "evt_c",
+				parsed: { eventTime: "2026-05-18T10:00:00.000Z" } as never,
+			}),
+			makeEvent({
+				id: "evt_a",
+				parsed: { eventTime: "2026-05-18T08:00:00.000Z" } as never,
+			}),
+			makeEvent({
+				id: "evt_b",
+				parsed: { eventTime: "2026-05-18T09:00:00.000Z" } as never,
+			}),
 		];
 		useEventStore.getState().appendEvents(events);
 

@@ -3,3 +3,4 @@ config.json
 .DS_Store
 *.log
 .vscode/settings.json
+apps/log-viewer/.env

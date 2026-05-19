@@ -1,10 +1,13 @@
 import { create } from "zustand";
 import { STORE_MAX_EVENTS } from "./constants";
-import { ConnectionState, type EventStore } from "./types";
+import {
+	ConnectionState,
+	type ConnectionStore,
+	type EventStore,
+} from "./types";
 
 export const useEventStore = create<EventStore>((set) => ({
 	events: new Map(),
-	connectionState: ConnectionState.connecting,
 	appendEvents: (incoming) =>
 		set((state) => {
 			const next = new Map([
@@ -19,5 +22,12 @@ export const useEventStore = create<EventStore>((set) => ({
 			}
 			return { events: next };
 		}),
+}));
+
+export const useConnectionStore = create<ConnectionStore>((set) => ({
+	connectionState: ConnectionState.connecting,
+	reconnectCount: 0,
 	setConnectionState: (connectionState) => set({ connectionState }),
+	incrementReconnectCount: () =>
+		set((s) => ({ reconnectCount: s.reconnectCount + 1 })),
 }));

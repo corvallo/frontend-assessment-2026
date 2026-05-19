@@ -1,6 +1,7 @@
+import { memo } from "react";
 import { columnsHeader } from "./event-list.style";
 
-export function ColumnsHeader() {
+function ColumnsHeaderCmp() {
 	return (
 		<div className={columnsHeader}>
 			<span>TIME</span>
@@ -13,3 +14,4 @@ export function ColumnsHeader() {
 		</div>
 	);
 }
+export const ColumnsHeader = memo(ColumnsHeaderCmp);

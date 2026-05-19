@@ -11,6 +11,8 @@ export const wrapper = cn(`
 export const filtersSection = cn(`
 	flex
 	p-4
+	items-center
+	gap-4
 `);
 
 export const columnsHeader = cn(`
@@ -26,5 +28,5 @@ export const columnsHeader = cn(`
 
 export const rowsWrapper = cn(`
 	overflow-auto
-	flex-1
+	h-full
 `);

@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { memo } from "react";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -6,7 +7,7 @@ import {
 	InputGroupInput,
 } from "@/shared/ui";
 
-export function EventsSearch() {
+function EventsSearchCmp() {
 	return (
 		<InputGroup className="max-w-xs h-10">
 			<InputGroupInput placeholder="Search..." />
@@ -21,3 +22,4 @@ export function EventsSearch() {
 		</InputGroup>
 	);
 }
+export const EventsSearch = memo(EventsSearchCmp);

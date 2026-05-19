@@ -6,13 +6,19 @@ export const ConnectionState = {
 	connected: "connected",
 	reconnecting: "reconnecting",
 	"catching-up": "catching-up",
-};
+	disconnected: "disconnected",
+} as const;
 
 export type ConnectionState = ValueOf<typeof ConnectionState>;
 
 export type EventStore = {
 	events: Map<string, StreamEvent>;
-	connectionState: ConnectionState;
 	appendEvents: (events: StreamEvent[]) => void;
+};
+
+export type ConnectionStore = {
+	connectionState: ConnectionState;
+	reconnectCount: number;
 	setConnectionState: (state: ConnectionState) => void;
+	incrementReconnectCount: () => void;
 };
