@@ -5,7 +5,7 @@ import {
 	MonitorPlay,
 	Skull,
 } from "lucide-react";
-import { memo, useCallback } from "react";
+import { memo } from "react";
 import { connectionManager } from "@/entities/event/model/connection-manager";
 import { useConnectionStore } from "@/entities/event/model/store";
 import { ConnectionState } from "@/entities/event/model/types";

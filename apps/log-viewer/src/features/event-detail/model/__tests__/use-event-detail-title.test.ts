@@ -1,7 +1,11 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+	makeEvent,
+	makeMalformedEvent,
+} from "@/entities/event/model/__tests__/mock";
 import { useEventStore } from "@/entities/event/model/store";
-import { makeEvent, makeMalformedEvent } from "@/entities/event/model/__tests__/mock";
+import type { StreamEvent } from "@/shared/api/events/types";
 import { useEventDetailStore } from "../store";
 import { useEventDetailTitle } from "../use-event-detail-title";
 

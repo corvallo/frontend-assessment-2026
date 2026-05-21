@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { stringify } from "yaml";
+import { dump } from "js-yaml";
 import { useEventStore } from "@/entities/event";
 import { useEventDetailStore } from "./store";
 
@@ -11,7 +11,7 @@ export function useYamlSelectedEvent() {
 	const yaml = useMemo(() => {
 		if (!selectedEvent) return "";
 		if (selectedEvent.malformed) return selectedEvent.raw;
-		return stringify(selectedEvent.parsed);
+		return dump(selectedEvent.parsed);
 	}, [selectedEvent]);
 	return { yaml };
 }

@@ -1,73 +1,123 @@
-# React + TypeScript + Vite
+# K8s Event Stream — Log Viewer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Candidate: Francesco Stallo
 
-Currently, two official plugins are available:
+Frontend for the Kubernetes-style event stream server. Displays live events via SSE, supports filtering, detail modal with YAML, and survives server restarts and malformed events.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Getting started
 
-## React Compiler
+```sh
+# from repo root — start the event server
+npm install
+npm run start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# from repo root — start the frontend (pnpm workspace)
+pnpm install
+pnpm --filter log-viewer dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Copy `.env.example` to `.env` before starting:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+cp .env.example .env
 ```
+
+## Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `VITE_API_URL` | `http://localhost:4000` | Base URL of the event stream server |
+
+## Available Commands
+| Command | Description |
+|---|---|
+| `pnpm --filter log-viewer dev` | Dev server with HMR |
+| `pnpm --filter log-viewer build` | Type-check + production build |
+| `pnpm --filter log-viewer preview` | Serve the production build locally |
+| `pnpm --filter log-viewer test` | Run tests in watch mode |
+
+## Architecture
+
+The project follows **[Feature-Sliced Design (FSD)](https://feature-sliced.design/)**, a layered architecture for frontend applications.
+Each layer can only import from layers below it.
+
+```
+app/          → providers, global styles, root layout
+pages/        → route-level components that assemble widgets
+widgets/      → page sections composed from features + entities
+features/     → self-contained user interactions
+entities/     → domain models (event store, connection store)
+shared/       → UI primitives, API clients, utility hooks
+```
+
+### Layers overview
+
+- **`shared/`** — API clients (SSE, catch-up REST, config), shadcn/ui primitives, utilities
+- **`entities/event/`** — event StorageEvent, connection store, `ConnectionManager`
+- **`features/`** — 12 self-contained slices: autoscroll, connection status, event detail modal, events search, pause/resume, rate selector, theme toggle, and various counters
+- **`widgets/`** — `header`, `toolbar`, `events-list`
+- **`pages/`** — `dashboard` page, assembles header + toolbar + events-list widgets
+
+## Key design decisions
+
+### SSE over WebSocket
+
+SSE was chosen because:
+- Natively reconnects (browser `EventSource`), which was overriden with custom backoff to control the timing
+- Simpler to reason about for a unidirectional stream
+- HTTP/2 compatible without upgrade
+
+### TanStack Virtual for the list
+
+The event list uses absolute-positioned virtualisation so only visible rows render. 
+
+Estimate sizes differ based on viewport and update on `resize`.
+
+### Zustand split stores
+
+State is split into stores (`useEventStore`, `useConnectionStore`, `useEventDetailStore`, `useSearchStore`, `useAutoScrollStore`) so components subscribe only to the slice they need, 
+avoiding unnecessary re-renders. 
+
+### Autoscroll
+
+Two scroll strategies:
+- **Instant** — used on new events when autoscroll is on; always reaches the true DOM bottom regardless of virtualizer state
+- **Smooth**  — used only when the user clicks the floating button
+
+A `isProgrammaticRef` flag prevents the scroll handler from disabling autoscroll during programmatic scrolls.
+
+### Exponential backoff
+
+`ConnectionManager` retries with `min(1000 × 2^n, 30 000)` ms delay. After 5 retries the state becomes `unreachable` and the UI signals the server cannot be reached. Retrying closes the `EventSource` immediately on `onerror` to prevent the browser's own 3-second native retry from interfering.
+
+### Catch-up on reconnect
+
+When the SSE connection drops and reconnects, `ConnectionManager` calls `GET /events?since=<lastEventId>` before marking the connection as `connected`. This fills the gap without duplicating events (the store deduplicates by id).
+
+### Malformed events
+
+Events that fail JSON parsing or do not conform to the K8s Event schema are marked `malformed: true` and kept in the store with their `raw` string. The UI renders them as a distinct variant of `EventRow` and the detail modal shows the raw string instead of YAML.
+
+### Event detail modal
+
+- YAML is produced with the `yaml` library from `event.parsed`
+- Prev/next navigation filters siblings by `involvedObject.uid` using `useShallow` to avoid re-renders on unrelated events
+
+### Exact-text filter
+
+The filter is a pure function (`filterEvents`) applied in `useMemo`. It matches against all visible columns: `message`, `namespace`, `reason`, `kind/name`, `source.component`, and `raw` (for malformed). The `involvedObject` is matched as the combined `kind/name` string so searching `"Pod/my-pod"` works as displayed.
+
+## Libraries
+
+| Library | Why |
+|---|---|
+| **React 19** | Concurrent features, `memo` + hooks |
+| **Zustand 5** | Minimal boilerplate, stable `getState()` outside React, `useShallow` for array selectors |
+| **TanStack Virtual 3** | Virtualise large lists without a heavy abstraction |
+| **shadcn/ui + Radix UI** | Set of beautifully-designed, accessible components |
+| **Tailwind CSS 4** | Utility-first, no runtime |
+| **class-variance-authority** | Type-safe component variants |
+| **js-yaml** | Stringify parsed K8s events for the detail modal |
+| **Vitest + Testing Library** | Fast unit tests co-located with source, React hook testing |
+| **Biome** | Single tool for lint + format |
+
