@@ -7,7 +7,7 @@ export function MalformedCounter() {
 	return (
 		<Badge
 			variant="outline"
-			className="h-8 px-4 rounded-md flex gap-2 items-center w-full"
+			className="h-8 px-4 rounded-md flex gap-2 items-center "
 			aria-label={label}
 			title={label}
 		>

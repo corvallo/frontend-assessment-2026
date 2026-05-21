@@ -17,7 +17,6 @@ export function connectSSE(handlers: SSEHandlers) {
 
 		onMessage?.(parsed);
 	};
-	//TODO: retry backoff logic
 	eventSource.onerror = (error) => {
 		onError?.(error);
 	};

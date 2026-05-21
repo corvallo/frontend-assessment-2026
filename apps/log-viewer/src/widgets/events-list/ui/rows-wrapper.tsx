@@ -1,29 +1,24 @@
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useCallback, useRef } from "react";
-import { selectEventList, useEventStore } from "@/entities/event";
-import { useEventDetailStore } from "@/features/event-detail/model";
+import { ScrollToBottom } from "@/features/autoscroll";
+import { EmptyList } from "@/features/empty-list";
+import { useRowsWrapper } from "../model";
 import { rowsWrapper } from "./event-list.style";
 import { EventRow } from "./event-row";
-import { MalformedRow } from "./malformed-row";
 
 function RowsWrapper() {
-	const parentRef = useRef<HTMLDivElement>(null);
-	const events = useEventStore(selectEventList);
-	const selectEventId = useEventDetailStore((s) => s.selectEvent);
-
-	const virtualizer = useVirtualizer({
-		count: events.length,
-		getScrollElement: () => parentRef.current,
-		estimateSize: () => 100,
-		enabled: true,
-	});
-	const handleSelect = useCallback(
-		(id: string) => selectEventId(id),
-		[selectEventId],
-	);
+	const {
+		parentRef,
+		events,
+		virtualizer,
+		isScrollable,
+		handleScroll,
+		handleSelect,
+		scrollToEndSmooth,
+	} = useRowsWrapper();
 
 	return (
-		<div ref={parentRef} className={rowsWrapper}>
+		<div ref={parentRef} className={rowsWrapper} onScroll={handleScroll}>
+			<EmptyList />
+
 			<div
 				style={{
 					height: virtualizer.getTotalSize(),
@@ -44,14 +39,18 @@ function RowsWrapper() {
 							transform: `translateY(${start}px)`,
 						}}
 					>
-						{events[index].malformed ? (
-							<MalformedRow event={events[index]} />
-						) : (
-							<EventRow event={events[index]} onSelect={handleSelect} />
-						)}
+						<EventRow
+							event={events[index]}
+							onSelect={handleSelect}
+							malformed={events[index].malformed}
+						/>
 					</div>
 				))}
 			</div>
+			<ScrollToBottom
+				isScrollable={isScrollable}
+				onScrollToEnd={scrollToEndSmooth}
+			/>
 		</div>
 	);
 }

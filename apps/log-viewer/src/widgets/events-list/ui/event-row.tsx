@@ -2,33 +2,72 @@ import { memo } from "react";
 import { EventLevelBadge } from "@/entities/event";
 import type { StreamEvent } from "@/shared/api/events/types";
 import { formatTime } from "@/shared/lib/format-time";
+import {
+	type EventRoWVariants,
+	eventRowDateWrapper,
+	eventRowSpanStyle,
+	eventRowStyle,
+} from "./event-row.style";
 
 type EventRowProps = {
 	event: StreamEvent;
 	onSelect: (id: string) => void;
-};
-function EventRowCmp({ event, onSelect }: EventRowProps) {
+} & EventRoWVariants;
+function EventRowCmp({ event, onSelect, malformed = false }: EventRowProps) {
 	const parsed = event.parsed;
+
 	return (
 		<button
 			type="button"
 			onClick={() => onSelect(event.id)}
-			className="grid grid-cols-[120px_90px_1fr_1fr_1fr_2fr_1fr] items-center gap-4 px-4 py-2 border-b border-border text-xs hover:bg-muted/30 w-full text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			className={eventRowStyle({ malformed })}
 		>
-			<span className="font-mono truncate text-muted-foreground">
-				{formatTime(parsed?.eventTime)}
+			<div className={eventRowDateWrapper}>
+				<span className={eventRowSpanStyle({ mono: true, muted: true })}>
+					{malformed
+						? formatTime(new Date(event.receivedAt).toISOString())
+						: formatTime(parsed?.eventTime)}
+				</span>
+				<EventLevelBadge type={malformed ? "Malformed" : parsed?.type} />
+			</div>
+			<span className={eventRowSpanStyle({ hidden_md: malformed })}>
+				<span className={eventRowSpanStyle({ hidden_md: true, muted: true })}>
+					Namespace:{" "}
+				</span>
+				{parsed?.metadata?.namespace ?? "—"}
 			</span>
-			<EventLevelBadge type={parsed?.type} />
-			<span className="truncate">{parsed?.metadata?.namespace ?? "—"}</span>
-			<span className="truncate">{parsed?.reason ?? "—"}</span>
-			<span className="truncate font-mono">
-				{parsed?.involvedObject?.kind ? `${parsed.involvedObject.kind}/` : ""}
-				{parsed?.involvedObject?.name ?? "—"}
+			<span className={eventRowSpanStyle({ hidden_md: malformed })}>
+				<span className={eventRowSpanStyle({ hidden_md: true, muted: true })}>
+					Type:{" "}
+				</span>
+				{parsed?.reason ?? "—"}
 			</span>
-			<span className="truncate text-muted-foreground">
+			<span
+				className={eventRowSpanStyle({
+					mono: true,
+					destructive: malformed,
+					spanned: malformed,
+				})}
+			>
+				<span className={eventRowSpanStyle({ hidden_md: true, muted: true })}>
+					{malformed ? "Raw: " : "Object: "}
+				</span>
+				{malformed
+					? event.raw
+					: `${parsed?.involvedObject?.kind ? `${parsed.involvedObject.kind}/` : ""}${parsed?.involvedObject?.name ?? "—"}`}
+			</span>
+			<span
+				className={eventRowSpanStyle({ muted: true, hidden_md: malformed })}
+			>
+				<span className={eventRowSpanStyle({ hidden_md: true })}>
+					Message:{" "}
+				</span>
 				{parsed?.message ?? "—"}
 			</span>
-			<span className="truncate text-muted-foreground">
+			<span
+				className={eventRowSpanStyle({ muted: true, hidden_md: malformed })}
+			>
+				<span className={eventRowSpanStyle({ hidden_md: true })}>Source: </span>
 				{parsed?.source?.component ?? "—"}
 			</span>
 		</button>

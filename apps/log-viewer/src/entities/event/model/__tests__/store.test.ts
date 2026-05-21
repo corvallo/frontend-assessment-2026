@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { selectEventList } from "../selectors";
+import { malformedCount, selectEventList } from "../selectors";
 import { useConnectionStore, useEventStore } from "../store";
 import { makeEvent } from "./mock";
 
 beforeEach(() => {
 	useEventStore.setState({ events: new Map() });
-	useConnectionStore.setState({ connectionState: "connecting", reconnectCount: 0 });
+	useConnectionStore.setState({
+		connectionState: "connecting",
+		reconnectCount: 0,
+	});
 });
 
 describe("appendEvents", () => {
@@ -69,13 +72,16 @@ describe("setConnectionState", () => {
 		expect(useConnectionStore.getState().connectionState).toBe("connected");
 	});
 
-	it.each(["connecting", "connected", "reconnecting", "catching-up", "disconnected"] as const)(
-		"accepts state %s",
-		(state) => {
-			useConnectionStore.getState().setConnectionState(state);
-			expect(useConnectionStore.getState().connectionState).toBe(state);
-		},
-	);
+	it.each([
+		"connecting",
+		"connected",
+		"reconnecting",
+		"catching-up",
+		"disconnected",
+	] as const)("accepts state %s", (state) => {
+		useConnectionStore.getState().setConnectionState(state);
+		expect(useConnectionStore.getState().connectionState).toBe(state);
+	});
 });
 
 describe("incrementReconnectCount", () => {
@@ -99,6 +105,30 @@ describe("incrementReconnectCount", () => {
 		useConnectionStore.getState().incrementReconnectCount();
 		useConnectionStore.getState().setConnectionState("connected");
 		expect(useConnectionStore.getState().reconnectCount).toBe(1);
+	});
+});
+
+describe("malformedCount", () => {
+	it("returns 0 when no events", () => {
+		expect(malformedCount(useEventStore.getState())).toBe(0);
+	});
+
+	it("counts only malformed events", () => {
+		useEventStore
+			.getState()
+			.appendEvents([
+				makeEvent({ id: "evt_1" }),
+				{ id: "evt_2", raw: "bad", malformed: true, receivedAt: Date.now() },
+				{ id: "evt_3", raw: "bad2", malformed: true, receivedAt: Date.now() },
+			]);
+		expect(malformedCount(useEventStore.getState())).toBe(2);
+	});
+
+	it("returns 0 when all events are valid", () => {
+		useEventStore
+			.getState()
+			.appendEvents([makeEvent({ id: "evt_1" }), makeEvent({ id: "evt_2" })]);
+		expect(malformedCount(useEventStore.getState())).toBe(0);
 	});
 });
 

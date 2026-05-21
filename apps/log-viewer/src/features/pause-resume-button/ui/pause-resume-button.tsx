@@ -1,4 +1,10 @@
-import { Loader2, MonitorOff, MonitorPause, MonitorPlay } from "lucide-react";
+import {
+	Loader2,
+	MonitorOff,
+	MonitorPause,
+	MonitorPlay,
+	Skull,
+} from "lucide-react";
 import { memo, useCallback } from "react";
 import { connectionManager } from "@/entities/event/model/connection-manager";
 import { useConnectionStore } from "@/entities/event/model/store";
@@ -27,6 +33,7 @@ function PauseResumeButtonCmp() {
 	const connectionState = useConnectionStore((s) => s.connectionState);
 	const isConnected = connectionState === ConnectionState.connected;
 	const isDisconnected = connectionState === ConnectionState.disconnected;
+	const isUnreachable = connectionState === ConnectionState.unreachable;
 	const isTransitioning = !isConnected && !isDisconnected;
 
 	const handleClick = () => {
@@ -44,6 +51,11 @@ function PauseResumeButtonCmp() {
 			{isDisconnected && (
 				<>
 					<MonitorPlay /> Resume
+				</>
+			)}
+			{isUnreachable && (
+				<>
+					<Skull /> Unreachable
 				</>
 			)}
 			{isTransitioning && transitioningContent[connectionState]}

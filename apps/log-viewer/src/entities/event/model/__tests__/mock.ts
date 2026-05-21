@@ -1,5 +1,16 @@
 import type { StreamEvent } from "@/shared/api/events/types";
 
+export function makeMalformedEvent(
+	overrides: Partial<StreamEvent> & { id: string },
+): StreamEvent {
+	return {
+		id: overrides.id,
+		raw: overrides.raw ?? '{"incomplete":',
+		malformed: true,
+		receivedAt: overrides.receivedAt ?? new Date("2026-05-18T08:00:00.000Z").getTime(),
+	};
+}
+
 export function makeEvent(overrides: Partial<StreamEvent> & { id: string }): StreamEvent {
 	return {
 		id: overrides.id,
@@ -18,7 +29,7 @@ export function makeEvent(overrides: Partial<StreamEvent> & { id: string }): Str
 			reportingInstance: "ip-10-0-1-1",
 			firstTimestamp: "2026-05-18T08:00:00.000Z",
 			lastTimestamp: "2026-05-18T08:00:00.000Z",
-			eventTime: overrides.parsed?.eventTime ?? "2026-05-18T08:00:00.000Z",
+			eventTime: "2026-05-18T08:00:00.000Z",
 			count: 1,
 			metadata: {
 				name: "pod.abc",

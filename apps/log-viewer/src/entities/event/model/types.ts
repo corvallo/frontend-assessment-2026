@@ -7,6 +7,7 @@ export const ConnectionState = {
 	reconnecting: "reconnecting",
 	"catching-up": "catching-up",
 	disconnected: "disconnected",
+	unreachable: "unreachable",
 } as const;
 
 export type ConnectionState = ValueOf<typeof ConnectionState>;

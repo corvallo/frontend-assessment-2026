@@ -6,10 +6,3 @@ export const mainStyle = cn(`
     py-6 sm:py-8
 	bg-background
 `);
-
-export const footerStyle = cn(`
-	shrink-0
-	h-8
-	flex items-center 
-    bg-background
-`);
