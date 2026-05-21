@@ -15,8 +15,10 @@ export function useSiblingEventDetail() {
 			return Array.from(s.events.values())
 				.filter((e) => e.parsed?.involvedObject?.uid === uid)
 				.sort((a, b) => {
-					const tA = a.parsed?.eventTime ?? new Date(a.receivedAt).toISOString();
-					const tB = b.parsed?.eventTime ?? new Date(b.receivedAt).toISOString();
+					const tA =
+						a.parsed?.eventTime ?? new Date(a.receivedAt).toISOString();
+					const tB =
+						b.parsed?.eventTime ?? new Date(b.receivedAt).toISOString();
 					return tA < tB ? -1 : tA > tB ? 1 : 0;
 				});
 		}),

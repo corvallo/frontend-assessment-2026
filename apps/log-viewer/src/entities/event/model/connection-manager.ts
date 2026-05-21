@@ -49,7 +49,9 @@ class ConnectionManager {
 			return;
 		}
 		const delay = Math.min(1000 * 2 ** this.retryCount, 30000);
-		console.log(`[CM] scheduleReconnect: retryCount=${this.retryCount} delay=${delay}ms`);
+		console.log(
+			`[CM] scheduleReconnect: retryCount=${this.retryCount} delay=${delay}ms`,
+		);
 		this.retryTimer = window.setTimeout(() => {
 			console.log("[CM] retryTimer fired, calling reconnect()");
 			this.retryTimer = null;
@@ -84,7 +86,9 @@ class ConnectionManager {
 			onError: (_e) => {
 				console.log(`[CM] onError — retryTimer=${this.retryTimer}`);
 				if (this.retryTimer !== null) {
-					console.log("[CM] onError: timer pending, closing connection and returning");
+					console.log(
+						"[CM] onError: timer pending, closing connection and returning",
+					);
 					this.connection?.close();
 					this.connection = null;
 					return;

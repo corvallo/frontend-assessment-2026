@@ -6,7 +6,6 @@
 		"useIgnoreFile": true
 	},
 	"css": {
-		
 		"parser": {
 			"tailwindDirectives": true
 		},

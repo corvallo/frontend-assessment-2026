@@ -23,7 +23,9 @@ export function EventDetailCmp() {
 		>
 			<DialogContent className={dialogContent}>
 				<DialogHeader>
-					<DialogTitle><EventDetailTitle /></DialogTitle>
+					<DialogTitle>
+						<EventDetailTitle />
+					</DialogTitle>
 				</DialogHeader>
 				<Content />
 				<DialogFooter className={dialogFooter}>

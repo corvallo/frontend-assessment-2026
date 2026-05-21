@@ -7,11 +7,14 @@ export function makeMalformedEvent(
 		id: overrides.id,
 		raw: overrides.raw ?? '{"incomplete":',
 		malformed: true,
-		receivedAt: overrides.receivedAt ?? new Date("2026-05-18T08:00:00.000Z").getTime(),
+		receivedAt:
+			overrides.receivedAt ?? new Date("2026-05-18T08:00:00.000Z").getTime(),
 	};
 }
 
-export function makeEvent(overrides: Partial<StreamEvent> & { id: string }): StreamEvent {
+export function makeEvent(
+	overrides: Partial<StreamEvent> & { id: string },
+): StreamEvent {
 	return {
 		id: overrides.id,
 		raw: overrides.raw ?? `{"id":"${overrides.id}"}`,

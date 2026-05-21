@@ -1,6 +1,9 @@
 import type { StreamEvent } from "@/shared/api/events/types";
 
-export function filterEvents(events: StreamEvent[], query: string): StreamEvent[] {
+export function filterEvents(
+	events: StreamEvent[],
+	query: string,
+): StreamEvent[] {
 	if (!query) return events;
 	const q = query.toLowerCase();
 	return events.filter(

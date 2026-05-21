@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
-import type { StreamEvent } from "@/shared/api/events/types";
 import { useEventStore } from "@/entities/event/model/store";
+import type { StreamEvent } from "@/shared/api/events/types";
 import { useEventDetailStore } from "../store";
 import { useSiblingEventDetail } from "../use-sibling-event-detail";
 
@@ -13,7 +13,11 @@ function makeSibling(id: string, eventTime: string): StreamEvent {
 		raw: `{"id":"${id}"}`,
 		malformed: false,
 		receivedAt: Date.now(),
-		parsed: { id, eventTime, involvedObject: { kind: "Pod", name: "my-pod", uid: UID } },
+		parsed: {
+			id,
+			eventTime,
+			involvedObject: { kind: "Pod", name: "my-pod", uid: UID },
+		},
 	};
 }
 
@@ -91,7 +95,11 @@ describe("useSiblingEventDetail", () => {
 			raw: "{}",
 			malformed: false,
 			receivedAt: Date.now(),
-			parsed: { id: "evt_other", eventTime: "2026-01-01T07:00:00.000Z", involvedObject: { uid: "other-uid" } },
+			parsed: {
+				id: "evt_other",
+				eventTime: "2026-01-01T07:00:00.000Z",
+				involvedObject: { uid: "other-uid" },
+			},
 		};
 		useEventStore.getState().appendEvents([sibling, other]);
 		useEventDetailStore.getState().selectEvent("evt_1");

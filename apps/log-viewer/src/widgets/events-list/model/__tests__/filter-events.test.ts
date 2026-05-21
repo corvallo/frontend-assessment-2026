@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { makeEvent, makeMalformedEvent } from "@/entities/event/model/__tests__/mock";
+import {
+	makeEvent,
+	makeMalformedEvent,
+} from "@/entities/event/model/__tests__/mock";
 import { filterEvents } from "../filter-events";
 
 const base = makeEvent({ id: "evt_1" });
@@ -49,7 +52,10 @@ describe("filterEvents", () => {
 	});
 
 	it("filters malformed events by raw content", () => {
-		const malformed = makeMalformedEvent({ id: "evt_bad", raw: "raw-error-content" });
+		const malformed = makeMalformedEvent({
+			id: "evt_bad",
+			raw: "raw-error-content",
+		});
 		expect(filterEvents([malformed], "raw-error")).toHaveLength(1);
 		expect(filterEvents([malformed], "no-match")).toHaveLength(0);
 	});
